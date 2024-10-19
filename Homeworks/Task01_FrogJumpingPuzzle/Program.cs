@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics;
+using System.Drawing;
 
 namespace Task01_FrogJumpingPuzzle
 {
@@ -12,9 +13,16 @@ namespace Task01_FrogJumpingPuzzle
 
 			List<string> path = new List<string>();
 
+			Stopwatch stopwatch = new Stopwatch();
+			stopwatch.Start();
+
 			DFS(board, n, path);
 
+			stopwatch.Stop();
+
 			Console.WriteLine(string.Join(Environment.NewLine, path.AsEnumerable().Reverse().ToList()));
+
+			Console.WriteLine($"Time: {stopwatch.Elapsed.TotalSeconds:F2} seconds");
 
 			return;
 		}
