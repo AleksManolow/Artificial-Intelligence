@@ -27,7 +27,7 @@ namespace Task02_SlidingBlocksNPuzzle
 			if (finalValueZero == -1)
 			{
 				finalBlankPos = new Point(n - 1, n - 1);
-				finalValueZero = 8;
+				finalValueZero = n * n - 1;
 			}
 			else
 			{
@@ -48,13 +48,6 @@ namespace Task02_SlidingBlocksNPuzzle
 		}
 
 		public int Size => n;
-
-        public int TileAt(int row, int col)
-		{
-			if (row < 0 || row >= n || col < 0 || col >= n)
-				throw new ArgumentException("Invalid row or column index.");
-			return tiles[row, col];
-		}
 
 		public override string ToString()
 		{
@@ -139,52 +132,12 @@ namespace Task02_SlidingBlocksNPuzzle
 			return true;
 		}
 
-		public override bool Equals(object obj)
-		{
-			if (obj == null || !(obj is Board))
-				return false;
-
-			Board other = (Board)obj;
-			if (this.Size != other.Size)
-				return false;
-
-			for (int i = 0; i < n; i++)
-				for (int j = 0; j < n; j++)
-					if (this.TileAt(i, j) != other.TileAt(i, j))
-						return false;
-
-			return true;
-		}
-
-		public List<Board> Neighbors()
-		{
-			List<Board> neighborsList = new List<Board>();
-
-			// Directions
-			int[] dx = { -1, 1, 0, 0 };
-			int[] dy = { 0, 0, -1, 1 };
-
-			// Move blankPos
-			for (int i = 0; i < 4; i++)
-			{
-				int newRow = currBlankPos.X + dx[i];
-				int newCol = currBlankPos.Y + dy[i];
-				if (newRow >= 0 && newRow < n && newCol >= 0 && newCol < n)
-				{
-					int[,] newTiles = CloneTiles();
-					newTiles[currBlankPos.X, currBlankPos.Y] = newTiles[newRow, newCol];
-					newTiles[newRow, newCol] = 0;
-					neighborsList.Add(new Board(finalValueZero, newTiles));
-				}
-			}
-			return neighborsList;
-		}
 		public List<(Board, string)> NeighborsWithMoves()
 		{
 			List<(Board, string)> neighbors = new List<(Board, string)>();
 			int[] dx = { -1, 1, 0, 0 };
 			int[] dy = { 0, 0, -1, 1 };
-			string[] directions = { "up", "down", "left", "right" };
+			string[] directions = { "down", "up", "right", "left" };
 
 			for (int i = 0; i < 4; i++)
 			{
