@@ -5,7 +5,9 @@ VisualStudioVersion = 17.11.35303.130
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Task01_FrogJumpingPuzzle", "Task01_FrogJumpingPuzzle\Task01_FrogJumpingPuzzle.csproj", "{DD879481-3944-4C0D-B792-B52007DD8738}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Task02_SlidingBlocksNPuzzle", "Task02_SlidingBlocksNPuzzle\Task02_SlidingBlocksNPuzzle.csproj", "{AE55579F-F183-4EB3-9365-A56ABD115194}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Task02_SlidingBlocksNPuzzle", "Task02_SlidingBlocksNPuzzle\Task02_SlidingBlocksNPuzzle.csproj", "{AE55579F-F183-4EB3-9365-A56ABD115194}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Task03_Queens", "Task03_Queens\Task03_Queens.csproj", "{D024A684-0574-4DA6-A5EA-2A3AA93DF91E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{AE55579F-F183-4EB3-9365-A56ABD115194}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE55579F-F183-4EB3-9365-A56ABD115194}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AE55579F-F183-4EB3-9365-A56ABD115194}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D024A684-0574-4DA6-A5EA-2A3AA93DF91E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D024A684-0574-4DA6-A5EA-2A3AA93DF91E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D024A684-0574-4DA6-A5EA-2A3AA93DF91E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D024A684-0574-4DA6-A5EA-2A3AA93DF91E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
