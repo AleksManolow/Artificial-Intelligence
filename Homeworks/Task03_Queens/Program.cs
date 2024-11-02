@@ -141,13 +141,16 @@ namespace Task03_Queens
 
 			Console.WriteLine($"{stopwatch.Elapsed.TotalSeconds:F2}");
 
-			StringBuilder strSolution = new StringBuilder();
-			strSolution.Append("[");
-			strSolution.Append(string.Join(", ", solution));
-			strSolution.Append(']');
-			Console.WriteLine(strSolution.ToString());
+			if (n < 100)
+			{
+				/*StringBuilder strSolution = new StringBuilder();
+				strSolution.Append("[");
+				strSolution.Append(string.Join(", ", solution));
+				strSolution.Append(']');
+				Console.WriteLine(strSolution.ToString());*/
 
-			//PrintSolution(solution);
+				PrintSolution(solution);
+			}
 		}
 	}
 }
