@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Diagnostics;
 
 namespace Task04_KnapsackProblem
 {
@@ -16,58 +14,92 @@ namespace Task04_KnapsackProblem
 		}
 	}
 
-	public class Program
+	public class GeneticAlgKnapsack
 	{
-		static Random random = new Random();
-		static int populationSize = 1000; 
-		static double mutationRate = 0.01; 
+		private Random Random { get; set; }
+		private int PopulationSize { get; set; }
+		private double MutationRate { get; set; }
+		private int MaxWeightKnapsack { get; set; }
+		private int NumberOfItems { get; set; }
+		private List<Item> Items { get; set; }
 
-		public static void Main()
+		public GeneticAlgKnapsack()
+        {
+            Random = new Random();
+			PopulationSize = 1000;
+			MutationRate = 0.01;
+			MaxWeightKnapsack = 0;
+			NumberOfItems = 0;
+			Items = new List<Item>();
+		}
+
+		public void ReadInput()
 		{
 			string[] firstLine = Console.ReadLine().Split();
-			int M = int.Parse(firstLine[0]);
-			int N = int.Parse(firstLine[1]);
+			MaxWeightKnapsack = int.Parse(firstLine[0]);
+			NumberOfItems = int.Parse(firstLine[1]);
 
-			List<Item> items = ReadInput(N);
-
-			List<bool[]> population = GenerateInitialPopulation(items.Count);
-
-			for (int generation = 1; generation <= 10; generation++)
+			for (int i = 0; i < NumberOfItems; i++)
 			{
-				List<(bool[], int)> evaluatedPopulation = population
-					.Select(individual => (individual, Fitness(individual, items, M)))
+				string[] itemData = Console.ReadLine().Split();
+				int weight = int.Parse(itemData[0]);
+				int value = int.Parse(itemData[1]);
+				Items.Add(new Item(weight, value));
+			}
+
+			Items.OrderByDescending(i => i.Value).OrderBy(i => i.Weight);
+		}
+
+		public void Solve()
+		{
+			List<bool[]> population = GenerateInitialPopulation();
+
+			for (int i = 0; i < 10; i++)
+			{
+				population = population
+					.Select(individual => (individual, Fitness(individual)))
 					.OrderByDescending(individual => individual.Item2)
+					.Select(d => d.individual)
+					.Take(PopulationSize)
 					.ToList();
 
-				Console.WriteLine(evaluatedPopulation[0].Item2);
+				Console.WriteLine(population.Select(individual => Fitness(individual)).Max());
 
-				List<bool[]> newPopulation = new List<bool[]>();
-				for (int i = 0; i < populationSize / 2; i++)
-				{
-					var parent1 = SelectParent(evaluatedPopulation);
-					var parent2 = SelectParent(evaluatedPopulation);
-					var (child1, child2) = Crossover(parent1, parent2);
-					newPopulation.Add(Mutate(child1));
-					newPopulation.Add(Mutate(child2));
-				}
+				List<bool[]> populationParents = population.Take(2).ToList();
 
-				population = newPopulation;
+				List<bool[]> populationChildren = Reproduction(populationParents);
+
+				populationChildren = Mutate(populationChildren);
+
+				population.AddRange(populationChildren);
 			}
 		}
 
-		public class Item
+		private List<bool[]>  GenerateInitialPopulation()
 		{
-			public int Weight { get; set; }
-			public int Value { get; set; }
-
-			public Item(int weight, int value)
+			List<bool[]> population = new List<bool[]>();
+			for (int i = 0; i < PopulationSize; i++)
 			{
-				Weight = weight;
-				Value = value;
+				int sumWeight = 0;
+				bool[] individual = new bool[NumberOfItems];
+				for (int j = 0; j < NumberOfItems; j++)
+				{
+					bool randomGetItem = Random.NextDouble() < 0.5;
+					if (randomGetItem && (sumWeight + Items[j].Weight <= MaxWeightKnapsack))
+					{
+						individual[j] = randomGetItem;
+						sumWeight += Items[j].Weight;
+					}
+					else
+					{
+						individual[j] = false;
+					}
+				}
+				population.Add(individual);
 			}
+			return population;
 		}
-
-		static int Fitness(bool[] individual, List<Item> items, int maxWeight)
+		private int Fitness(bool[] individual)
 		{
 			int totalWeight = 0;
 			int totalValue = 0;
@@ -75,85 +107,82 @@ namespace Task04_KnapsackProblem
 			{
 				if (individual[i])
 				{
-					totalWeight += items[i].Weight;
-					totalValue += items[i].Value;
+					totalWeight += Items[i].Weight;
+					totalValue += Items[i].Value;
 				}
 			}
-			return totalWeight <= maxWeight ? totalValue : 0;
+			return totalWeight <= MaxWeightKnapsack ? totalValue : 0;
 		}
-
-		static List<bool[]> GenerateInitialPopulation(int geneLength)
+		private List<bool[]> SelectParents(List<bool[]> population)
 		{
-			List<bool[]> population = new List<bool[]>();
-			for (int i = 0; i < populationSize; i++)
+			List<bool[]> parents = new List<bool[]>();	
+			foreach (bool[] individual in population)
 			{
-				bool[] individual = new bool[geneLength];
-				for (int j = 0; j < geneLength; j++)
+                if (Random.NextDouble() < 0.5)
+					parents.Add(individual);
+
+				if (parents.Count() == 2)
+					return parents;
+			}
+			return parents.Take(2).ToList();
+		}
+		private List<bool[]> Reproduction(List<bool[]> populationParents)
+		{
+			List<bool[]> populationChildren = new List<bool[]>();
+			bool[] parent1 = populationParents[0];
+			bool[] parent2 = populationParents[1];
+			for (int childCount = 0; childCount < PopulationSize / 2; childCount++)
+			{
+				int length = NumberOfItems;
+				bool[] child = new bool[length];
+				int sumWeight = 0;
+				for (int i = 0; i < length; i++)
 				{
-					individual[j] = random.NextDouble() < 0.5;
+					if (Random.NextDouble() < 0.5)
+						child[i] = parent1[i];
+					else
+						child[i] = parent2[i];
+
+					if(child[i])
+					{
+						if (Items[i].Weight + sumWeight <= MaxWeightKnapsack)
+							sumWeight += Items[i].Weight;
+						else
+							child[i] = false;
+					}
 				}
-				population.Add(individual);
+				populationChildren.Add(child);
 			}
-			return population;
+			
+			return populationChildren;
 		}
 
-		static bool[] SelectParent(List<(bool[], int)> evaluatedPopulation)
+		private List<bool[]> Mutate(List<bool[]> populationChildren)
 		{
-			int totalFitness = evaluatedPopulation.Sum(x => x.Item2);
-			int randomPoint = random.Next(totalFitness);
-			int currentSum = 0;
-			foreach (var individual in evaluatedPopulation)
+			for(int j = 0; j < populationChildren.Count(); j++) 
 			{
-				currentSum += individual.Item2;
-				if (currentSum >= randomPoint)
-					return individual.Item1;
-			}
-			return evaluatedPopulation[0].Item1;
-		}
-
-		static (bool[], bool[]) Crossover(bool[] parent1, bool[] parent2)
-		{
-			int length = parent1.Length;
-			int crossoverPoint = random.Next(1, length - 1);
-			bool[] child1 = new bool[length];
-			bool[] child2 = new bool[length];
-			for (int i = 0; i < length; i++)
-			{
-				if (i < crossoverPoint)
+				for (int i = 0; i < NumberOfItems; i++)
 				{
-					child1[i] = parent1[i];
-					child2[i] = parent2[i];
-				}
-				else
-				{
-					child1[i] = parent2[i];
-					child2[i] = parent1[i];
+					if (Random.NextDouble() < MutationRate)
+						populationChildren[j][i] = !populationChildren[j][i];
 				}
 			}
-			return (child1, child2);
+			return populationChildren;
 		}
+	}
 
-		static bool[] Mutate(bool[] individual)
+	public class Program
+	{
+		public static void Main()
 		{
-			for (int i = 0; i < individual.Length; i++)
-			{
-				if (random.NextDouble() < mutationRate)
-					individual[i] = !individual[i];
-			}
-			return individual;
-		}
+			GeneticAlgKnapsack geneticAlgKnapsack = new GeneticAlgKnapsack();
+			geneticAlgKnapsack.ReadInput();
 
-		public static List<Item> ReadInput(int itemCount)
-		{
-			List<Item> items = new List<Item>();
-			for (int i = 0; i < itemCount; i++)
-			{
-				string[] itemData = Console.ReadLine().Split();
-				int weight = int.Parse(itemData[0]);
-				int value = int.Parse(itemData[1]);
-				items.Add(new Item(weight, value));
-			}
-			return items;
+			Stopwatch stopwatch = Stopwatch.StartNew();
+			geneticAlgKnapsack.Solve();
+			stopwatch.Stop();
+
+			Console.WriteLine($"{stopwatch.Elapsed.TotalSeconds:F2}");
 		}
 	}
 }
