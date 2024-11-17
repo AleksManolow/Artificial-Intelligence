@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Task02_SlidingBlocksNPuzzle
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Task03_Queens", "Task03_Queens\Task03_Queens.csproj", "{D024A684-0574-4DA6-A5EA-2A3AA93DF91E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Task04_KnapsackProblem", "Task04_KnapsackProblem\Task04_KnapsackProblem.csproj", "{1EDF14EB-7890-4402-A13E-5418F781C0AE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Task04_KnapsackProblem", "Task04_KnapsackProblem\Task04_KnapsackProblem.csproj", "{1EDF14EB-7890-4402-A13E-5418F781C0AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Task05_TicTacToe", "Task05_TicTacToe\Task05_TicTacToe.csproj", "{6097AA69-FBCA-4B20-B7AF-962B6FCF8532}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{1EDF14EB-7890-4402-A13E-5418F781C0AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1EDF14EB-7890-4402-A13E-5418F781C0AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1EDF14EB-7890-4402-A13E-5418F781C0AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6097AA69-FBCA-4B20-B7AF-962B6FCF8532}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6097AA69-FBCA-4B20-B7AF-962B6FCF8532}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6097AA69-FBCA-4B20-B7AF-962B6FCF8532}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6097AA69-FBCA-4B20-B7AF-962B6FCF8532}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
