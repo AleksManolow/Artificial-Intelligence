@@ -12,7 +12,7 @@
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Choose who plays first (1 - Player, 2 - Computer): ");
+            Console.WriteLine("Choose who plays first (1 - Player or 2 - Computer): ");
             int choice = int.Parse(Console.ReadLine());
 
             bool isPlayerTurn = choice == 1;
@@ -43,18 +43,16 @@
                 }
                 else
                 {
-                    Console.WriteLine("Computer is thinking...");
+                    Console.WriteLine("Computer play:");
                     ComputerMove();
                 }
 
                 isPlayerTurn = !isPlayerTurn;
             }
-            DisplayBoard();
         }
 
         static void DisplayBoard()
         {
-            Console.WriteLine("\nBoard:");
             for (int i = 0; i < 3; i++)
             {
                 for (int j = 0; j < 3; j++)
@@ -72,7 +70,7 @@
             int x, y;
             while (true)
             {
-                Console.WriteLine("Enter your move (row and column): ");
+                Console.WriteLine("Enter move: ");
                 x = int.Parse(Console.ReadLine()) - 1;
                 y = int.Parse(Console.ReadLine()) - 1;
                 if (x >= 0 && x < 3 && y >= 0 && y < 3 && board[x, y] == ' ')
