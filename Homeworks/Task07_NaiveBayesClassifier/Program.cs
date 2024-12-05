@@ -5,7 +5,6 @@ namespace Task07_NaiveBayesClassifier
 {
 	class Program
 	{
-		// Define the data structure
 		public class VotingData
 		{
 			[LoadColumn(0)]
@@ -17,7 +16,7 @@ namespace Task07_NaiveBayesClassifier
 
 		public class TransformedData
 		{
-			public bool Label { get; set; } // Democrat = false, Republican = true
+			public bool Label { get; set; }
 
 			[VectorType(16)]
 			public float[] Features { get; set; }
@@ -32,7 +31,6 @@ namespace Task07_NaiveBayesClassifier
 
 			string dataPath = "D:\\programing\\Artificial-Intelligence\\Homeworks\\Task07_NaiveBayesClassifier\\house-votes-84.data";
 
-			// Load data
 			var rawData = File.ReadAllLines(dataPath)
 							  .Select(line => line.Split(','))
 							  .Select(fields => new VotingData
@@ -42,14 +40,11 @@ namespace Task07_NaiveBayesClassifier
 							  })
 							  .ToList();
 
-			// Transform data based on the chosen mode
 			var transformedData = TransformData(rawData, mode);
 
-			// Split data into train and test sets
 			var context = new MLContext();
 			var (trainData, testData) = SplitData(context, transformedData, 0.8);
 
-			// Define pipeline and train model
 			var pipeline = context.Transforms.Conversion.MapValueToKey("Label")
 						  .Append(context.Transforms.Concatenate("Features", "Features"))
 						  .Append(context.MulticlassClassification.Trainers.NaiveBayes())
@@ -57,7 +52,6 @@ namespace Task07_NaiveBayesClassifier
 
 			var model = pipeline.Fit(trainData);
 
-			// Evaluate the model
 			Console.WriteLine("\nTraining Accuracy:");
 			var trainMetrics = EvaluateModel(context, model, trainData);
 			Console.WriteLine($"Accuracy: {trainMetrics.MacroAccuracy:P2}");
@@ -77,11 +71,11 @@ namespace Task07_NaiveBayesClassifier
 			return rawData.Select(item =>
 			{
 				var features = item.Votes.Select(v => mode == 0
-					? (v == "y" ? 1f : v == "n" ? 0f : 0.5f) // Treat "?" as abstained (0.5)
-					: v == "y" ? 1f : v == "n" ? 0f : float.NaN) // Fill NaN for missing values
+					? (v == "y" ? 1f : v == "n" ? 0f : 0.5f)
+					: v == "y" ? 1f : v == "n" ? 0f : float.NaN) 
 					.ToArray();
 
-				if (mode == 1) // Fill missing values with column means
+				if (mode == 1)
 				{
 					for (int i = 0; i < features.Length; i++)
 					{
