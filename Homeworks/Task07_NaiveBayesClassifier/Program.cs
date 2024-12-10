@@ -1,36 +1,28 @@
-﻿using Microsoft.Data.Analysis;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NaiveBayesClassifier
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-
 	class Program
 	{
 		static void Main(string[] args)
 		{
-			Console.WriteLine("Въведете 0 за 'въздържал се' или 1 за заместване на '?':");
+			Console.WriteLine("Enter 0 for 'abstained' or 1 for replacement on '?':");
 			int choice = int.Parse(Console.ReadLine());
 
-			// Зареждане и обработка на данните
-			string filePath = "D:\\programing\\Artificial-Intelligence\\Homeworks\\Task07_NaiveBayesClassifier\\house-votes-84.data"; // Укажете пътя към файла
+			string filePath = "D:\\programing\\Artificial-Intelligence\\Homeworks\\Task07_NaiveBayesClassifier\\house-votes-84.data";
 			var rawData = LoadData(filePath);
 
-			// Подготовка на данните
 			var (labels, features) = PreprocessData(rawData, choice);
 
-			// Разделяне на данните на обучаващи и тестови множества
 			var (trainFeatures, trainLabels, testFeatures, testLabels) = SplitData(features, labels, 0.8);
 
-			// Обучение на класификатора
 			var (model, classCounts, valueToIndex) = TrainNaiveBayes(trainFeatures, trainLabels);
 
-			// Оценка на точността върху обучаващото множество
 			double trainAccuracy = Evaluate(trainFeatures, trainLabels, model, classCounts, valueToIndex);
 			Console.WriteLine($"Train Set Accuracy: {trainAccuracy * 100:F2}%");
 
-			// 10-кратна кръстосана проверка
 			var (cvAccuracies, cvMean, cvStdDev) = CrossValidate(features, labels, 10, classCounts, valueToIndex);
 			Console.WriteLine("\n10-Fold Cross-Validation Results:");
 			for (int i = 0; i < cvAccuracies.Count; i++)
@@ -40,38 +32,33 @@ namespace NaiveBayesClassifier
 			Console.WriteLine($"\n    Average Accuracy: {cvMean * 100:F2}%");
 			Console.WriteLine($"    Standard Deviation: {cvStdDev * 100:F2}%");
 
-			// Оценка на точността върху тестовото множество
 			double testAccuracy = Evaluate(testFeatures, testLabels, model, classCounts, valueToIndex);
 			Console.WriteLine($"\nTest Set Accuracy: {testAccuracy * 100:F2}%");
 		}
 
 		static List<string[]> LoadData(string filePath)
 		{
-			// Зарежда данните от файл и ги разделя на редове
 			return System.IO.File.ReadAllLines(filePath).Select(line => line.Split(',')).ToList();
 		}
 
 		static (List<int>, List<List<string>>) PreprocessData(List<string[]> rawData, int choice)
 		{
-			// Разделя данните на етикети и характеристики и обработва липсващите стойности
 			var labels = rawData.Select(row => row[0] == "democrat" ? 0 : 1).ToList();
 			var features = rawData.Select(row => row.Skip(1).ToList()).ToList();
 
 			if (choice == 0)
 			{
-				// Приемаме '?' за трета стойност "въздържал се"
 				for (int i = 0; i < features.Count; i++)
 				{
 					for (int j = 0; j < features[i].Count; j++)
 					{
 						if (features[i][j] == "?")
-							features[i][j] = "2"; // Въздържал се
+							features[i][j] = "2";
 					}
 				}
 			}
 			else
 			{
-				// Заместване на '?' с най-често срещаната стойност в колоната
 				for (int j = 0; j < features[0].Count; j++)
 				{
 					var columnValues = features.Select(row => row[j]).Where(value => value != "?").ToList();
@@ -91,7 +78,6 @@ namespace NaiveBayesClassifier
 		static (List<List<string>>, List<int>, List<List<string>>, List<int>) SplitData(
 			List<List<string>> features, List<int> labels, double trainRatio)
 		{
-			// Разделя данните на обучаващо и тестово множество
 			int trainSize = (int)(features.Count * trainRatio);
 			var indices = Enumerable.Range(0, features.Count).ToList();
 			var random = new Random();
@@ -111,7 +97,6 @@ namespace NaiveBayesClassifier
 		static (Dictionary<int, Dictionary<int, Dictionary<int, int>>>, Dictionary<int, int>, Dictionary<string, int>) TrainNaiveBayes(
 			List<List<string>> trainFeatures, List<int> trainLabels)
 		{
-			// Обучава Наивен Бейсов Класификатор
 			var uniqueValues = trainFeatures.SelectMany(row => row).Distinct().ToList();
 			var valueToIndex = uniqueValues.Select((value, index) => new { value, index }).ToDictionary(x => x.value, x => x.index);
 			var numericalFeatures = trainFeatures.Select(row => row.Select(value => valueToIndex[value]).ToList()).ToList();
@@ -128,7 +113,7 @@ namespace NaiveBayesClassifier
 					featureCounts[label][j] = new Dictionary<int, int>();
 					foreach (var featureValue in uniqueValues.Select(v => valueToIndex[v]))
 					{
-						featureCounts[label][j][featureValue] = 1; // Лапласово изглаждане
+						featureCounts[label][j][featureValue] = 1;
 					}
 				}
 			}
@@ -148,7 +133,6 @@ namespace NaiveBayesClassifier
 			Dictionary<int, Dictionary<int, Dictionary<int, int>>> model,
 			Dictionary<int, int> classCounts, Dictionary<string, int> valueToIndex)
 		{
-			// Предсказва класа за даден ред от характеристики
 			var numericalRow = featureRow.Select(value => valueToIndex[value]).ToList();
 			double[] probabilities = new double[2];
 
@@ -169,7 +153,6 @@ namespace NaiveBayesClassifier
 			Dictionary<int, Dictionary<int, Dictionary<int, int>>> model,
 			Dictionary<int, int> classCounts, Dictionary<string, int> valueToIndex)
 		{
-			// Изчислява точността на класификатора
 			int correct = 0;
 
 			for (int i = 0; i < featuresSet.Count; i++)
@@ -183,7 +166,6 @@ namespace NaiveBayesClassifier
 		static (List<double>, double, double) CrossValidate(List<List<string>> features,
 		List<int> labels, int folds, Dictionary<int, int> classCounts, Dictionary<string, int> valueToIndex)
 		{
-			// Извършва 10-кратна кръстосана проверка
 			int foldSize = features.Count / folds;
 			var indices = Enumerable.Range(0, features.Count).ToList();
 			var random = new Random();
@@ -201,7 +183,6 @@ namespace NaiveBayesClassifier
 				var testFeatures = testIndices.Select(i => features[i]).ToList();
 				var testLabels = testIndices.Select(i => labels[i]).ToList();
 
-				// Обучение на модела върху тренировъчния набор за текущата итерация
 				var currentModel = TrainNaiveBayes(trainFeatures, trainLabels, classCounts, valueToIndex);
 
 				double accuracy = Evaluate(testFeatures, testLabels, currentModel, classCounts, valueToIndex);
@@ -218,7 +199,6 @@ namespace NaiveBayesClassifier
 			List<List<string>> trainFeatures, List<int> trainLabels, Dictionary<int, int> classCounts,
 			Dictionary<string, int> valueToIndex)
 		{
-			// Обучава Наивен Бейсов Класификатор
 			var uniqueValues = trainFeatures.SelectMany(row => row).Distinct().ToList();
 			var numericalFeatures = trainFeatures.Select(row => row.Select(value => valueToIndex[value]).ToList()).ToList();
 
@@ -233,7 +213,7 @@ namespace NaiveBayesClassifier
 					featureCounts[label][j] = new Dictionary<int, int>();
 					foreach (var featureValue in uniqueValues.Select(v => valueToIndex[v]))
 					{
-						featureCounts[label][j][featureValue] = 1; // Лапласово изглаждане
+						featureCounts[label][j][featureValue] = 1;
 					}
 				}
 			}
