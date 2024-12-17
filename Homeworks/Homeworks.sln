@@ -13,9 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Task04_KnapsackProblem", "T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Task05_TicTacToe", "Task05_TicTacToe\Task05_TicTacToe.csproj", "{6097AA69-FBCA-4B20-B7AF-962B6FCF8532}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Task06_kNN", "Task06_kNN\Task06_kNN.csproj", "{07662AEB-A127-4FAB-BFAF-779D3EFFE20A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Task06_kNN", "Task06_kNN\Task06_kNN.csproj", "{07662AEB-A127-4FAB-BFAF-779D3EFFE20A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Task07_NaiveBayesClassifier", "Task07_NaiveBayesClassifier\Task07_NaiveBayesClassifier.csproj", "{B772961E-71F1-4B8A-9160-704AC25B0D36}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Task07_NaiveBayesClassifier", "Task07_NaiveBayesClassifier\Task07_NaiveBayesClassifier.csproj", "{B772961E-71F1-4B8A-9160-704AC25B0D36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Task08_DecisionTree", "Task08_DecisionTree\Task08_DecisionTree.csproj", "{EC09A1AA-2164-4329-B969-2A6FF53F72E0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{B772961E-71F1-4B8A-9160-704AC25B0D36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B772961E-71F1-4B8A-9160-704AC25B0D36}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B772961E-71F1-4B8A-9160-704AC25B0D36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC09A1AA-2164-4329-B969-2A6FF53F72E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC09A1AA-2164-4329-B969-2A6FF53F72E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC09A1AA-2164-4329-B969-2A6FF53F72E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC09A1AA-2164-4329-B969-2A6FF53F72E0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
