@@ -8,225 +8,176 @@ namespace NaiveBayesClassifier
 	{
 		static void Main(string[] args)
 		{
-			Console.WriteLine("Enter 0 for 'abstained' or 1 for replacement on '?':");
-			int choice = int.Parse(Console.ReadLine());
+			int counter = 0;
+			string line;
+			var arr = new string[435][];
 
-			string filePath = "D:\\programing\\Artificial-Intelligence\\Homeworks\\Task07_NaiveBayesClassifier\\house-votes-84.data";
-			var rawData = LoadData(filePath);
-
-			var (labels, features) = PreprocessData(rawData, choice);
-
-			var (trainFeatures, trainLabels, testFeatures, testLabels) = SplitData(features, labels, 0.8);
-
-			var (model, classCounts, valueToIndex) = TrainNaiveBayes(trainFeatures, trainLabels);
-
-			double trainAccuracy = Evaluate(trainFeatures, trainLabels, model, classCounts, valueToIndex);
-			Console.WriteLine($"Train Set Accuracy: {trainAccuracy * 100:F2}%");
-
-			var (cvAccuracies, cvMean, cvStdDev) = CrossValidate(features, labels, 10, classCounts, valueToIndex);
-			Console.WriteLine("\n10-Fold Cross-Validation Results:");
-			for (int i = 0; i < cvAccuracies.Count; i++)
+			// Read the file and display it line by line.  
+			System.IO.StreamReader file =
+				new System.IO.StreamReader(@"D:\programing\Artificial-Intelligence\Homeworks\Task07_NaiveBayesClassifier\house-votes-84.data");
+			while ((line = file.ReadLine()) != null)
 			{
-				Console.WriteLine($"    Accuracy Fold {i + 1}: {cvAccuracies[i] * 100:F2}%");
+				arr[counter] = line.Split(',');
+				counter++;
 			}
-			Console.WriteLine($"\n    Average Accuracy: {cvMean * 100:F2}%");
-			Console.WriteLine($"    Standard Deviation: {cvStdDev * 100:F2}%");
+			file.Close();
 
-			double testAccuracy = Evaluate(testFeatures, testLabels, model, classCounts, valueToIndex);
-			Console.WriteLine($"\nTest Set Accuracy: {testAccuracy * 100:F2}%");
+			var model = new PoliticRecognizerModel(arr);
+			model.TrainAndTest();
+		}
+	}
+	class PoliticRecognizerModel
+	{
+		private int votesNum = 16;
+
+		private string[][] arr;
+
+		private int[][] precomputeValuesRepublicant;
+		private double republicantCount;
+
+		private int[][] precomputeValuesDemocrat;
+		private double democratCount;
+
+		public PoliticRecognizerModel(string[][] data)
+		{
+			this.arr = data;
+			this.InitializeData();
 		}
 
-		static List<string[]> LoadData(string filePath)
+		private void InitializeData()
 		{
-			return System.IO.File.ReadAllLines(filePath).Select(line => line.Split(',')).ToList();
-		}
-
-		static (List<int>, List<List<string>>) PreprocessData(List<string[]> rawData, int choice)
-		{
-			var labels = rawData.Select(row => row[0] == "democrat" ? 0 : 1).ToList();
-			var features = rawData.Select(row => row.Skip(1).ToList()).ToList();
-
-			if (choice == 0)
+			this.democratCount = 0;
+			this.republicantCount = 0;
+			this.precomputeValuesRepublicant = new int[this.votesNum][];
+			this.precomputeValuesDemocrat = new int[this.votesNum][];
+			for (int i = 0; i < this.votesNum; i++)
 			{
-				for (int i = 0; i < features.Count; i++)
+				this.precomputeValuesRepublicant[i] = new int[3];
+				this.precomputeValuesDemocrat[i] = new int[3];
+			}
+		}
+
+		private void TrainModel(int startIndex, int endIndex)
+		{
+			for (int i = 0; i < arr.Length; i++)
+			{
+				if (i == startIndex)
 				{
-					for (int j = 0; j < features[i].Count; j++)
+					i = endIndex;
+				}
+
+				var item = arr[i];
+				if (item[0] == "democrat")
+				{
+					this.democratCount++;
+					this.ComputeSingleValue(precomputeValuesDemocrat, item);
+				}
+				else
+				{
+					this.republicantCount++;
+					this.ComputeSingleValue(precomputeValuesRepublicant, item);
+				}
+
+
+			}
+		}
+
+		private void ComputeSingleValue(int[][] precomputeValues, string[] votes)
+		{
+			for (int i = 0; i < this.votesNum; i++)
+			{
+				switch (votes[i + 1])
+				{
+					case "y":
+						precomputeValues[i][0]++;
+						break;
+					case "n":
+						precomputeValues[i][1]++;
+						break;
+					case "?":
+						precomputeValues[i][2]++;
+						break;
+					default:
+						throw new Exception();
+				}
+			}
+		}
+
+		private int TestModel(int startIndex, int endIndex)
+		{
+			double accuracy = 0;
+			for (int i = startIndex; i < endIndex; i++)
+			{
+				double republicant = Math.Log(democratCount / 387);
+				double democrat = Math.Log(republicantCount / 387);
+				for (int j = 1; j <= this.votesNum; j++)
+				{
+					switch (arr[i][j])
 					{
-						if (features[i][j] == "?")
-							features[i][j] = "2";
+						case "y":
+							democrat += Math.Log(ValueOrDefault(precomputeValuesDemocrat[j - 1][0]));
+							republicant += Math.Log(ValueOrDefault(precomputeValuesRepublicant[j - 1][0], false));
+							break;
+						case "n":
+							democrat += Math.Log(ValueOrDefault(precomputeValuesDemocrat[j - 1][1]));
+							republicant += Math.Log(ValueOrDefault(precomputeValuesRepublicant[j - 1][1], false));
+
+							break;
+						case "?":
+							democrat += Math.Log(ValueOrDefault(precomputeValuesDemocrat[j - 1][2]));
+							republicant += Math.Log(ValueOrDefault(precomputeValuesRepublicant[j - 1][2], false));
+							break;
+
+						default:
+							throw new Exception();
 					}
 				}
+				//decimal d = Decimal.Parse(Math.Round(democrat, 12).ToString(), System.Globalization.NumberStyles.Float);
+				//decimal r = Decimal.Parse(Math.Round(republicant, 12).ToString(), System.Globalization.NumberStyles.Float);
+				//Console.WriteLine("Democrat   : {0}", d);
+				//Console.WriteLine("Republicant: {0}", r);
+				//Console.WriteLine("Actually {0}\n", arr[i][0]);
+
+				if (democrat > republicant && arr[i][0] == "democrat") accuracy++;
+				if (republicant > democrat && arr[i][0] == "republican") accuracy++;
+
+			}
+
+			Console.WriteLine("Accurancy: {0}", (accuracy / 43).ToString("#0.##%"));
+			return (int)accuracy;
+		}
+
+		private double ValueOrDefault(int value, bool democate = true)
+		{
+			if (democate)
+			{
+				return (value == 0 ? 1 : value) / (democratCount + 3);
 			}
 			else
 			{
-				for (int j = 0; j < features[0].Count; j++)
-				{
-					var columnValues = features.Select(row => row[j]).Where(value => value != "?").ToList();
-					string mostCommon = columnValues.GroupBy(x => x).OrderByDescending(g => g.Count()).First().Key;
-
-					for (int i = 0; i < features.Count; i++)
-					{
-						if (features[i][j] == "?")
-							features[i][j] = mostCommon;
-					}
-				}
+				return (value == 0 ? 1 : value) / (republicantCount + 3);
 			}
-
-			return (labels, features);
 		}
 
-		static (List<List<string>>, List<int>, List<List<string>>, List<int>) SplitData(
-			List<List<string>> features, List<int> labels, double trainRatio)
+		public void TrainAndTest()
 		{
-			int trainSize = (int)(features.Count * trainRatio);
-			var indices = Enumerable.Range(0, features.Count).ToList();
-			var random = new Random();
-			indices = indices.OrderBy(x => random.Next()).ToList();
+			double accuracySum = 0;
+			this.Shuffle();
+			for (int i = 0; i < 10; i++)
+			{
+				this.InitializeData();
+				this.TrainModel(i * 43, i * 43 + 43);
 
-			var trainIndices = indices.Take(trainSize).ToList();
-			var testIndices = indices.Skip(trainSize).ToList();
+				accuracySum += this.TestModel(i * 43, i * 43 + 43);
+			}
 
-			var trainFeatures = trainIndices.Select(i => features[i]).ToList();
-			var trainLabels = trainIndices.Select(i => labels[i]).ToList();
-			var testFeatures = testIndices.Select(i => features[i]).ToList();
-			var testLabels = testIndices.Select(i => labels[i]).ToList();
-
-			return (trainFeatures, trainLabels, testFeatures, testLabels);
+			Console.WriteLine("Average accurancy: {0}", (accuracySum / 430).ToString("#0.##%"));
 		}
 
-		static (Dictionary<int, Dictionary<int, Dictionary<int, int>>>, Dictionary<int, int>, Dictionary<string, int>) TrainNaiveBayes(
-			List<List<string>> trainFeatures, List<int> trainLabels)
+		private void Shuffle()
 		{
-			var uniqueValues = trainFeatures.SelectMany(row => row).Distinct().ToList();
-			var valueToIndex = uniqueValues.Select((value, index) => new { value, index }).ToDictionary(x => x.value, x => x.index);
-			var numericalFeatures = trainFeatures.Select(row => row.Select(value => valueToIndex[value]).ToList()).ToList();
-
-			var classCounts = trainLabels.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-			var featureCounts = new Dictionary<int, Dictionary<int, Dictionary<int, int>>>();
-
-			for (int label = 0; label <= 1; label++)
-			{
-				featureCounts[label] = new Dictionary<int, Dictionary<int, int>>();
-
-				for (int j = 0; j < numericalFeatures[0].Count; j++)
-				{
-					featureCounts[label][j] = new Dictionary<int, int>();
-					foreach (var featureValue in uniqueValues.Select(v => valueToIndex[v]))
-					{
-						featureCounts[label][j][featureValue] = 1;
-					}
-				}
-			}
-
-			foreach (var (featuresRow, label) in numericalFeatures.Zip(trainLabels, (f, l) => (f, l)))
-			{
-				for (int j = 0; j < featuresRow.Count; j++)
-				{
-					featureCounts[label][j][featuresRow[j]]++;
-				}
-			}
-
-			return (featureCounts, classCounts, valueToIndex);
-		}
-
-		static double Predict(List<string> featureRow,
-			Dictionary<int, Dictionary<int, Dictionary<int, int>>> model,
-			Dictionary<int, int> classCounts, Dictionary<string, int> valueToIndex)
-		{
-			var numericalRow = featureRow.Select(value => valueToIndex[value]).ToList();
-			double[] probabilities = new double[2];
-
-			for (int label = 0; label <= 1; label++)
-			{
-				probabilities[label] = Math.Log(classCounts[label] / (double)classCounts.Values.Sum());
-
-				for (int j = 0; j < numericalRow.Count; j++)
-				{
-					probabilities[label] += Math.Log(model[label][j][numericalRow[j]] / (double)classCounts[label]);
-				}
-			}
-
-			return probabilities[0] > probabilities[1] ? 0 : 1;
-		}
-
-		static double Evaluate(List<List<string>> featuresSet, List<int> labelsSet,
-			Dictionary<int, Dictionary<int, Dictionary<int, int>>> model,
-			Dictionary<int, int> classCounts, Dictionary<string, int> valueToIndex)
-		{
-			int correct = 0;
-
-			for (int i = 0; i < featuresSet.Count; i++)
-			{
-				if (Predict(featuresSet[i], model, classCounts, valueToIndex) == labelsSet[i])
-					correct++;
-			}
-
-			return correct / (double)featuresSet.Count;
-		}
-		static (List<double>, double, double) CrossValidate(List<List<string>> features,
-		List<int> labels, int folds, Dictionary<int, int> classCounts, Dictionary<string, int> valueToIndex)
-		{
-			int foldSize = features.Count / folds;
-			var indices = Enumerable.Range(0, features.Count).ToList();
-			var random = new Random();
-			indices = indices.OrderBy(x => random.Next()).ToList();
-
-			List<double> accuracies = new List<double>();
-
-			for (int fold = 0; fold < folds; fold++)
-			{
-				var testIndices = indices.Skip(fold * foldSize).Take(foldSize).ToList();
-				var trainIndices = indices.Except(testIndices).ToList();
-
-				var trainFeatures = trainIndices.Select(i => features[i]).ToList();
-				var trainLabels = trainIndices.Select(i => labels[i]).ToList();
-				var testFeatures = testIndices.Select(i => features[i]).ToList();
-				var testLabels = testIndices.Select(i => labels[i]).ToList();
-
-				var currentModel = TrainNaiveBayes(trainFeatures, trainLabels, classCounts, valueToIndex);
-
-				double accuracy = Evaluate(testFeatures, testLabels, currentModel, classCounts, valueToIndex);
-				accuracies.Add(accuracy);
-			}
-
-			double meanAccuracy = accuracies.Average();
-			double stdDevAccuracy = Math.Sqrt(accuracies.Select(a => Math.Pow(a - meanAccuracy, 2)).Sum() / (accuracies.Count - 1));
-
-			return (accuracies, meanAccuracy, stdDevAccuracy);
-		}
-
-		static Dictionary<int, Dictionary<int, Dictionary<int, int>>> TrainNaiveBayes(
-			List<List<string>> trainFeatures, List<int> trainLabels, Dictionary<int, int> classCounts,
-			Dictionary<string, int> valueToIndex)
-		{
-			var uniqueValues = trainFeatures.SelectMany(row => row).Distinct().ToList();
-			var numericalFeatures = trainFeatures.Select(row => row.Select(value => valueToIndex[value]).ToList()).ToList();
-
-			var featureCounts = new Dictionary<int, Dictionary<int, Dictionary<int, int>>>();
-
-			for (int label = 0; label <= 1; label++)
-			{
-				featureCounts[label] = new Dictionary<int, Dictionary<int, int>>();
-
-				for (int j = 0; j < numericalFeatures[0].Count; j++)
-				{
-					featureCounts[label][j] = new Dictionary<int, int>();
-					foreach (var featureValue in uniqueValues.Select(v => valueToIndex[v]))
-					{
-						featureCounts[label][j][featureValue] = 1;
-					}
-				}
-			}
-
-			foreach (var (featuresRow, label) in numericalFeatures.Zip(trainLabels, (f, l) => (f, l)))
-			{
-				for (int j = 0; j < featuresRow.Count; j++)
-				{
-					featureCounts[label][j][featuresRow[j]]++;
-				}
-			}
-
-			return featureCounts;
+			Random rnd = new Random();
+			this.arr = arr.OrderBy(x => rnd.Next()).ToArray();
 		}
 
 	}
